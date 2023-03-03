@@ -76,7 +76,7 @@
         "valarray": "cpp",
         "variant": "cpp"
     },
-    "editor.fontFamily": "SF Mono, 'PingFang SC', monospace",
+    "editor.fontFamily": "monospace",
     "editor.renderWhitespace": "boundary",
     "editor.accessibilitySupport": "off",
     "editor.cursorStyle": "block-outline",
