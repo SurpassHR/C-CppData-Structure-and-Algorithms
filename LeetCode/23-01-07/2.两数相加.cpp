@@ -4,30 +4,32 @@
  * [2] 两数相加
  */
 
-// @lc code=start
-/**
- * Definition for singly-linked list.
- * struct ListNode {
- *     int val;
- *     ListNode *next;
- *     ListNode() : val(0), next(nullptr) {}
- *     ListNode(int x) : val(x), next(nullptr) {}
- *     ListNode(int x, ListNode *next) : val(x), next(next) {}
- * };
- */
+ // @lc code=start
+ /**
+  * Definition for singly-linked list.
+  * struct ListNode {
+  *     int val;
+  *     ListNode *next;
+  *     ListNode() : val(0), next(nullptr) {}
+  *     ListNode(int x) : val(x), next(nullptr) {}
+  *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+  * };
+  */
 
+
+  // 高精度加法
 #include "../LeetCode.h"
 
 struct ListNode {
     int val;
     ListNode* next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode* next) : val(x), next(next) {}
+    ListNode(): val(0), next(nullptr) { }
+    ListNode(int x): val(x), next(nullptr) { }
+    ListNode(int x, ListNode* next): val(x), next(next) { }
 };
 
 class Solution {
-   public:
+public:
     ListNode* createList(int arr[], int len) {
         int i;
         ListNode* head = new ListNode(arr[0]);
@@ -53,7 +55,7 @@ class Solution {
 
     ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
         // 模拟加法进位
-        ListNode *head, *t;
+        ListNode* head, * t;
         t = head;
         int carry = 0;
 

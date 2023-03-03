@@ -1,7 +1,8 @@
 #include "../LeetCode.h"
+using namespace std;
 
 class Solution {
-   public:
+public:
     // 滑动窗口
     int lengthOfLongestSubstring(string s) {
         int size = s.size();
