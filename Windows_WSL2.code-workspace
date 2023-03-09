@@ -3,5 +3,13 @@
         {
             "path": "."
         }
-    ]
+    ],
+    "settings": {
+        "files.associations": {
+            "*.md": "markdown",
+            "ostream": "cpp",
+            "queue": "cpp",
+            "deque": "cpp"
+        }
+    }
 }
