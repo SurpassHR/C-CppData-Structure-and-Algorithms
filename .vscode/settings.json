@@ -1,5 +1,5 @@
 {
-    "editor.fontFamily": "SF Mono, PingFang SC",
+    "editor.fontFamily": "SF Mono SC, PingFang SC, monospace",
     "editor.renderWhitespace": "boundary",
     "editor.accessibilitySupport": "off",
     "editor.cursorStyle": "block-outline",
@@ -13,5 +13,10 @@
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.type": "sameLine",
     "C_Cpp.vcFormat.space.beforeInitializerListOpenBrace": true,
     "C_Cpp.vcFormat.space.betweenEmptyBraces": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "terminal.integrated.fontFamily": "SF Mono SC,PingFang SC, monospace",
+    "files.associations": {
+        "*.md": "markdown",
+        "iostream": "cpp"
+    }
 }
