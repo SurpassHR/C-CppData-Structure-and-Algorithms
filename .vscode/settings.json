@@ -1,11 +1,11 @@
 {
+    // 编辑器配置
     "editor.fontFamily": "SF Mono SC, PingFang SC, monospace",
-    "editor.renderWhitespace": "boundary",
-    "editor.accessibilitySupport": "off",
-    "editor.cursorStyle": "block-outline",
+    "editor.renderWhitespace": "all",
     "editor.wordWrap": "off",
+    "editor.formatOnSave": true,
+    // markdown
     "markdown.preview.fontFamily": "SF Mono, PingFang SC",
-    "editor.cursorSurroundingLines": 0,
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.block": "sameLine",
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.function": "sameLine",
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.lambda": "sameLine",
@@ -13,10 +13,31 @@
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.type": "sameLine",
     "C_Cpp.vcFormat.space.beforeInitializerListOpenBrace": true,
     "C_Cpp.vcFormat.space.betweenEmptyBraces": true,
-    "editor.formatOnSave": true,
+    // terminal
     "terminal.integrated.fontFamily": "SF Mono SC,PingFang SC, monospace",
     "files.associations": {
         "*.md": "markdown",
-        "iostream": "cpp"
-    }
+        "iostream": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "system_error": "cpp",
+        "array": "cpp",
+        "regex": "cpp"
+    },
+    // code-runner
+    "code-runner.runInTerminal": true,
+    "code-runner.clearPreviousOutput": false,
+    "code-runner.executorMap": {
+        "c": "cd $dir && gcc \"$fileName\" -o \"$fileNameWithoutExt\" && \"./fileNameWithoutExt\"",
+        "cpp": "cd $dir && g++ \"$fileName\" -o \"$fileNameWithoutExt\" && \"./$fileNameWithoutExt\"",
+    },
+    "code-runner.fileDirectoryAsCwd": true,
+    "code-runner.saveFileBeforeRun": true,
+    // 保存文件时删除末尾空格空行
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true
 }

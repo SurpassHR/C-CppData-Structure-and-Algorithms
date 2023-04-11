@@ -21,8 +21,6 @@ int main() {
     };
     getline(cin, input);
     istringstream iss(input);
-    // printf("%d, %d \n", 'A', 'Z');
-    // printf("%d, %d \n", 'a', 'z');
     bool first = 1;
     while (iss >> s) {
         if (first) {
@@ -31,11 +29,8 @@ int main() {
             cout << " ";
         }
         for (int i = 0; i < s.size(); i++) {
-            if (s[i] >= 97 && s[i] <= 122) {
-                if (vowelTab[s[i]]) s[i] -= 32;
-            } else {
-                if (!vowelTab[s[i]]) s[i] += 32;
-            }
+            if (s[i] >= 97 && s[i] <= 122) if (vowelTab[s[i]]) s[i] -= 32;
+            else if (!vowelTab[s[i]]) s[i] += 32;
         }
         cout << s;
         if (iss.get() == '\n') break;
