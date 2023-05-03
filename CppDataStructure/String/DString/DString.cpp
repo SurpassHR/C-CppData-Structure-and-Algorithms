@@ -3,9 +3,9 @@
 #include <iostream>
 using namespace std;
 
-Status StrAssign(DString &T, char *chars) {
+Status StrAssign(DString& T, char* chars) {
     int char_len = 0, i;
-    char *ctemp = chars;
+    char* ctemp = chars;
 
     // 字符串长
     while (ctemp && *ctemp != '\0') {
@@ -14,7 +14,7 @@ Status StrAssign(DString &T, char *chars) {
     }
 
     // 分配空间
-    T.ch = (char *)malloc(sizeof(char) * (char_len + 1));
+    T.ch = (char*)malloc(sizeof(char) * (char_len + 1));
 
     // 鲁棒性
     if (!T.ch) {
@@ -32,14 +32,14 @@ Status StrAssign(DString &T, char *chars) {
     return OK;
 }
 
-Status SubString(DString &Sub, DString S, int pos, int len) {
+Status SubString(DString& Sub, DString S, int pos, int len) {
     int i = 1;
     if (pos > S.length || pos + len > S.length || !S.ch || !S.length) {
         return ERROR;
     }
 
     // 分配空间
-    Sub.ch = (char *)malloc(sizeof(char) * (len + 1));
+    Sub.ch = (char*)malloc(sizeof(char) * (len + 1));
     if (!Sub.ch) {
         return ERROR;
     }
@@ -69,7 +69,7 @@ int StrCompare(DString S, DString T) {
 }
 
 Status StrPrint(DString T) {
-    char *chtemp = T.ch;
+    char* chtemp = T.ch;
     int i;
 
     // 判断串空
@@ -86,10 +86,10 @@ Status StrPrint(DString T) {
     return OK;
 }
 
-int *GetNext(bool Optm, DString T) {
+int* GetNext(bool Optm, DString T) {
     // 计算 Next[]
     // 分配空间
-    int *Next = (int *)malloc(sizeof(int) * (T.length + 1));
+    int* Next = (int*)malloc(sizeof(int) * (T.length + 1));
 
     if (!Next) {
         exit(-1);
@@ -102,12 +102,12 @@ int *GetNext(bool Optm, DString T) {
     int i = 3;
 
     // 最大比较子串长度
-    int sub_len;
+    int sub_len = 0;
 
     // Next[] 赋值范围 [1:T.length]
     while (i <= T.length) {
         DString head_sub, tail_sub;
-        // 从大到小比较可能的最大相同字串，sub_len 最大值 i - 2
+        // 从大到小比较可能的最大相同子串，sub_len 最大值 i - 2
         sub_len = i - 2;
         while (sub_len >= 0) {
             // 取得子串
@@ -127,7 +127,7 @@ int *GetNext(bool Optm, DString T) {
 
     // 计算 Nextval[]
     // 分配空间
-    int *Nextval = (int *)malloc(sizeof(int) * (T.length + 1));
+    int* Nextval = (int*)malloc(sizeof(int) * (T.length + 1));
     if (!Nextval) {
         exit(-1);
     }
