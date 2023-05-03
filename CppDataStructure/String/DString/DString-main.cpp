@@ -11,8 +11,8 @@ int main() {
 
     cout << "-----比大小-----" << endl;
     DString a, b;
-    StrAssign(a, (char *)"abstract");
-    StrAssign(b, (char *)"abstraction");
+    StrAssign(a, (char*)"abstract");
+    StrAssign(b, (char*)"abstraction");
     int comp = StrCompare(a, b);
     if (comp > 0) {
         cout << "a > b" << endl;
@@ -24,11 +24,11 @@ int main() {
 
     cout << "-----模式匹配-----" << endl;
     DString S, Pat;
-    StrAssign(S, (char *)"aabaabaabaac");
-    StrAssign(Pat, (char *)"aabaac");
+    StrAssign(S, (char*)"aaabaaabbbabaa");
+    StrAssign(Pat, (char*)"babb");
 
-    int *Next = GetNext(false, Pat);
-    int *Nextval = GetNext(true, Pat);
+    int* Next = GetNext(false, Pat);
+    int* Nextval = GetNext(true, Pat);
 
 
     for (int i = 1; i <= Pat.length; i++) {
