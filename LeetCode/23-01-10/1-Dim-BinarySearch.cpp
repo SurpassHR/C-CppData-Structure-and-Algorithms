@@ -1,5 +1,6 @@
 /* 二分查找的一维数组简单实现 */
 #include "../LeetCode.h"
+using namespace std;
 
 class Solution {
 public:
