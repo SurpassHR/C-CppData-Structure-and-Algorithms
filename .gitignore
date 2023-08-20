@@ -1,3 +1,3 @@
-*.code-workspace
-*.out
-.vscode/
+**/*.code-workspace
+**/*.out
+**/.vscode/
