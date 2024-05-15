@@ -18,6 +18,12 @@ git mm cherry-pick -s 66
 # 本地拉取特定MR后回退一个提交：
 git reset --soft HEAD~1
 
+# 回退到指定时间时间
+git mm reset --until "2024-04-07 17:00:00"
+
+# 内容同步至目标分支
+git mm forall -- 'git update-ref refs/heads/sys_debug HEAD'
+
 # 本地查看改动点（在总仓路径下）：
 git mm status
 
