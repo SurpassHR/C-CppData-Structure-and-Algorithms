@@ -35,3 +35,5 @@
 2. 修改终端 `locale` 和 `charset` : 为 `zh_CN` 和 `UTF-8`，实际上只与 `charset` 相关
 
 3. 对于某些不能直接通过选项设置 `locale` 和 `charset` 的，需要手动 `export LC_ALL=zh_CN.UTF-8` 或者 `export LANG=zh_CN.UTF-8`，之后可以添加到 `~/.bashrc` 中，`bash` 可能不能很好的支持 `/etc/profile` 中的内容
+
+4. gitk乱码修复 `git config --global gui.encoding utf-8`

@@ -41,3 +41,12 @@ git mm upload
 
 # 之后可选择具体的MR选择上传（Yes/No/Edit）
 ```
+
+## Some single repo git usage
+
+```bash
+# 等价替换
+git pull == git fetch && git merge <remote_name>/<branch_name>
+git pull --rebase == git fetch && git rebase <remote_name>/<branch_name>
+```
+
