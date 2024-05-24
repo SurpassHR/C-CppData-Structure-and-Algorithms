@@ -39,3 +39,9 @@
 4. gitk乱码修复 `git config --global gui.encoding utf-8`
 
 5.   `git log` 显示 `<B2><BB><D0>޸ĵ<D8><C7><F8>Unicode UTF-8ѡ<CF><EE><B5><C4>ǰ<CC><E1><CF>½<E2><BE><F6>bash<C2><D2><C2><EB><CE><CA><CC><E2>` 则修改 `git config --global i18n.logOutputEncoding utf-8`
+
+### 解决每次注销或重启后远程服务器网络凭据过期
+
+- 打开凭据管理器，添加Windows凭据
+
+![image-20240524094357966](http://image.huawei.com/tiny-lts/v1/images/46899f8554c4f08eaf699cde6bfa6d60_493x166.png)
