@@ -33,12 +33,12 @@
 
 1. `git config --global core.quotePath false` 解决 `git status` 显示 `new file:   "../\345\223\210\345\223\210.txt"` 的问题
 2. 修改终端 `locale` 和 `charset` : 为 `zh_CN` 和 `UTF-8`，实际上只与 `charset` 相关
-
 3. 对于某些不能直接通过选项设置 `locale` 和 `charset` 的，需要手动 `export LC_ALL=zh_CN.UTF-8` 或者 `export LANG=zh_CN.UTF-8`，之后可以添加到 `~/.bashrc` 中，`bash` 可能不能很好的支持 `/etc/profile` 中的内容
-
 4. gitk乱码修复 `git config --global gui.encoding utf-8`
-
 5.   `git log` 显示 `<B2><BB><D0>޸ĵ<D8><C7><F8>Unicode UTF-8ѡ<CF><EE><B5><C4>ǰ<CC><E1><CF>½<E2><BE><F6>bash<C2><D2><C2><EB><CE><CA><CC><E2>` 则修改 `git config --global i18n.logOutputEncoding utf-8`
+6. 修改注册表字符编码页 `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Nls\CodePage`
+   - 其中，ACP和OEMCP分别定义了Windows系统在图形用户界面和命令行界面中使用的字符编码；
+   - 解决 `git` 中的全部问题只需要修改 `OEMCP` 值为 `65001`
 
 ### 解决每次注销或重启后远程服务器网络凭据过期
 
