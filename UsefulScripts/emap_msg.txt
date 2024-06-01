@@ -1,2 +1,0 @@
-sdfsfasdas >>Send msg [ 10]: 01 00 4B 10 02 02 04 9A :: 12 34 56 78 90
-asdasdasda >>Recv msg [ 10]: 01 00 4B 10 02 02 04 9A :: 12 34 56 78 90
