@@ -48,11 +48,25 @@ git mm credential --store -u='${USER_NAME}' -p='${USER_PASSWD}' --host "*"
 [{"Protocol":"https","Host":"*","Path":"*","Username":"h30045134","Password":"QWElMjEwOTQxNjE3NTM="}]
 ```
 
-### git-mm指令和使用场景
+### 解决每年更换域账号密码后 `git-mm credential` 失效，导致 `git-mm` 同步多仓时弹出 windows 凭证窗口
 
 ```bash
-# 本地克隆一份仓库代码：
+cat ~/.git-credential # 可以发现，git凭证管理中依然是旧密码
+rm -rf ~/.git-credential
+cd /path/to/your/code/root
+rm -rf ./* ./.mm
+git mm init ...
+git mm sync
+```
+
+### git-mm指令和使用场景，`git-mm` 基于多仓项目的多分支管理
+
+```bash
+# 本地初始化远程分支 master
 git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC/LCC_Manifest.git -b master -m LCC/dependency.xml -g lcc,llt
+
+# 本地初始化远程分支 br_LCC_V300R024C00_TR5-1_Release
+git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC/LCC_Manifest.git -b br_LCC_V300R024C00_TR5-1_Release -m LCC/dependency.xml -g lcc,llt
 
 # 本地新建分支：
 git mm start <分支名> --all
