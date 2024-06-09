@@ -45,3 +45,7 @@
 - 打开凭据管理器，添加Windows凭据
 
 ![image-20240524094357966](http://image.huawei.com/tiny-lts/v1/images/46899f8554c4f08eaf699cde6bfa6d60_493x166.png)
+
+### 查看内存条型号
+
+- `wmic memorychip get /value`
