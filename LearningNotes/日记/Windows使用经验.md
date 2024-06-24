@@ -49,3 +49,8 @@
 ### 查看内存条型号
 
 - `wmic memorychip get /value`
+
+### 修改桌面图标间距
+
+1.   打开 `Registry` ，进入表项 `\HKEY_CURRENT_USER\Control Panel\Desktop\WindowMetrics`
+2.   `IconSpacing` 和 `IconVerticalSpacing` 默认为 `-1125` 图标间距较大时调整为默认值即可解决
