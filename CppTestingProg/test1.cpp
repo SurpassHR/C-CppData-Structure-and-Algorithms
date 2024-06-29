@@ -27,6 +27,8 @@ int main() {
     printf("%d\n", (int *)(&ff));
     printf("%f\n", ff);
 
+    printf("%f-%f=%f\n", INVALID_VALUE_FLOAT, INVALID_VALUE_FLOAT, INVALID_VALUE_FLOAT-INVALID_VALUE_FLOAT);
+
     CtrlValType val{ 0 };
     printf("%u %d %f\n", val.unsignedVal, val.signedVal, val.f32Val);
 
