@@ -129,3 +129,7 @@ enum LccEquipType : VOS_UINT16 {
 ![image-20240126093128722](http://image.huawei.com/tiny-lts/v1/images/e5e21226179568a1852e1258b616c239_1231x114.png)
 
 ![image-20240126093154442](http://image.huawei.com/tiny-lts/v1/images/0cc392559e5fa5e81b28e849530f491f_1207x114.png)
+
+![image-20240719202230611](http://image.huawei.com/tiny-lts/v1/images/c74e58eb5c0386725b917907b081c80d_579x645.png)
+
+![image-20240719202333457](http://image.huawei.com/tiny-lts/v1/images/eb07e0147a7957db59d83fa65433fa0f_579x645.png)
