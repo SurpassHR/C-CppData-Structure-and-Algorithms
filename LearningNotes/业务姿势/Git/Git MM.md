@@ -6,6 +6,8 @@ git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC
 
 git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC/LCC_Manifest.git -b br_LCC_V300R024C00_TR5-1_Release -m LCC/dependency.xml -g lcc,llt
 
+git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC/LCC_Manifest.git -b br_LCC_V300R024C10_TR5-1_Release -m LCC/dependency.xml -g lcc,llt
+
 # 本地新建分支：
 git mm start <分支名> --all
 
@@ -49,4 +51,3 @@ git mm upload
 git pull == git fetch && git merge <remote_name>/<branch_name>
 git pull --rebase == git fetch && git rebase <remote_name>/<branch_name>
 ```
-
