@@ -1,6 +1,7 @@
 #ifndef TEST_OVERRIDE_NEW_H
 #undef  TEST_OVERRIDE_NEW_H
 
+#include <iostream>
 #include <cstddef>
 #include <new>
 
