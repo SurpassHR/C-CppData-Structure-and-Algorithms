@@ -129,6 +129,35 @@
     
     -   3、该问题有必现条件；
 
+### 问题代码
+
+```c++
+VOS_UINT32 LogicCompSysStateNormRun::CalcLastCompCtrlInfo(LogicCompSysCtrlData &compSysData, VOS_FLOAT &lastCtrlPerc,
+    VOS_FLOAT &ratedCapacity)
+{
+    auto compModule = compSysData.compModule; // 出现了析构导致问题，并非是出作用域释放
+    // auto &compModule = compSysData.compModule; // 没问题
+    // LogicCompModule compModule = compSysData.compModule; // 没问题
+    VOS_FLOAT lastOutCap = 0.0f;
+    VOS_FLOAT ratedCap = 0.0f;
+
+    if ((compModule.GetCapacity(COMPRESSOR_MODULE_CTRL_CAP, lastOutCap) != VOS_OK) ||
+        (compModule.GetCapacity(COMPRESSOR_MODULE_RATED_CAP, ratedCap) != VOS_OK)) {
+        EMAP_LOG(COMP_MODULE_ID_TEMP_CTRL_SCHEDULE, EMAP_PRINT_LEVEL_ERROR, "comp module get capacity err");
+        return VOS_ERR;
+    }
+
+    if (FLOAT_EQ_ZERO(ratedCap)) {
+        EMAP_LOG(COMP_MODULE_ID_TEMP_CTRL_SCHEDULE, EMAP_PRINT_LEVEL_ERROR, "comp capacity err");
+        return VOS_ERR;
+    }
+
+    lastCtrlPerc = lastOutCap / ratedCap;
+    ratedCapacity = ratedCap;
+    return VOS_OK;
+}
+```
+
 ## 定位过程
 
 -   最初猜测只是简单的踩内存问题，所以通过临终遗言观察程序中之前的调用栈来寻找可能的踩内存位置；
@@ -149,65 +178,77 @@
 
     -   可以确定，该问题是由运行逻辑中的内存正常释放导致的野指针踩空导致；
 
-    -   使用gdbserver挂载调试复现，在析构函数中打断点，断住之后backtrace(bt)，逐行分析可能的释放位置，定位到是将引用赋值给auto类型时，导致右侧对象被销毁，之后左侧对象在离开作用域后销毁，原本类中结构体c中存储的类b被释放、a中指针指向的类被释放，维护使用指针处继续使用空指针进行操作，导致踩空；
+    -   使用gdbserver挂载调试复现，在析构函数中打断点，断住之后backtrace(bt)，逐行分析可能的释放位置，定位到是将引用赋值给auto类型时，左侧对象执行析构，释放掉指针数组的内容，原本类中结构体c中存储的类b中的指针数组指向的类被释放，维护使用指针处继续使用空指针进行操作，导致踩空；
 
-        -   ```cpp
-            1145        EMAP_LOG(4171, 5, "[LogicCompModuleDmdCtrl] destructor");
-            (gdb) bt
-            #0  LogicCompModuleDmdCtrl::~LogicCompModuleDmdCtrl (this=0xa4704c48, __in_chrg=<optimized out>)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module_state/logic_comp_module_dmd_ctrl.cpp:1145
-            #1  0x00524fda in LogicCompModuleDmdCtrl::~LogicCompModuleDmdCtrl (this=0xa4704c48, __in_chrg=<optimized out>)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module_state/logic_comp_module_dmd_ctrl.cpp:1146
-            #2  0x0051fe52 in LogicCompModule::ReleaseResource (this=0xa41fc780)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module.cpp:50
-            #3  0x0051fdb4 in LogicCompModule::~LogicCompModule (this=0xa41fc780, __in_chrg=<optimized out>)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module.h:123
-            #4  0x005515f8 in LogicCompSysStateNormRun::CalcLastCompCtrlInfo (this=0xa4704e50, compSysData=..., lastCtrlPerc=@0xa41fc7e4: 0, ratedCapacity=@0xa41fc7e0: 2.5)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:180
-            #5  0x0055143e in LogicCompSysStateNormRun::CalcCompModuleTempPidDmd (this=0xa4704e50, compSysData=..., routeCtrlInfo=..., dmdCalcPid=...)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:162
-            #6  0x00551248 in LogicCompSysStateNormRun::CalcCompModuleCoolDmd (this=0xa4704e50, compSysData=..., routeCtrlInfo=..., dmdCalcPid=...)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:122
-            #7  0x0055199a in LogicCompSysStateNormRun::CalcCompCoolCtrlInfo (this=0xa4704e50, compSysData=..., compModuleCtrl=...)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:273
-            #8  0x00551846 in LogicCompSysStateNormRun::ProcCompDmdCtrl (this=0xa4704e50, compSysData=...)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:242
-            #9  0x005520ea in LogicCompSysStateNormRun::ProcDmdCtrl (this=0xa4704e50, compSysData=...)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:466
-            #10 0x00551ece in LogicCompSysStateNormRun::ProcCtrl (this=0xa4704e50, compSysData=...)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:404
-            #11 0x00531fc0 in LogicCompSysEquipGroupProcCtrl::ProcCompSysState (this=0xa4701814)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_proc_ctrl.cpp:418
-            #12 0x005320d6 in LogicCompSysEquipGroupProcCtrl::ProcCtrl (this=0xa4701814, ctrlTypeNum=6, ctrlInfo=0xa4708f50)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_proc_ctrl.cpp:451
-            #13 0x00537bdc in LogicCompSysEquipGroupProcCtrlWithCompHeat::ProcCtrl (this=0xa4701814, ctrlTypeNum=6, ctrlInfo=0xa4708f50)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_proc_ctrl_with_comp_heat.cpp:69
-            #14 0x0052cf78 in LogicCompSysEquipGroupImpl::ProcCtrl (this=0xa4701790, ctrlTypeNum=6, ctrlInfo=0xa4708f50)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_impl.cpp:42
-            #15 0x0050085a in LogicCompSysCtrlBase::Ctrl (this=0x705f28 <CreateSubStateDehumOffCabCoolOffBatActiveCool(LogicObjectType)::stateDehumOff+24>, ctrlMode=0, route1DemandId=2, route2DemandId=65280)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode/e_store/mode_utility/equip_group_ctrl/logic_comp_sys_equip_group_ctrl/logic_comp_sys_equip_group_ctrl.cpp:33
-            #16 0x004d7ebe in DehumOffCabCoolOffBatActiveCoolWithIncab::Proc (this=0x705f10 <CreateSubStateDehumOffCabCoolOffBatActiveCool(LogicObjectType)::stateDehumOff>, recvMsg=0xa46728e4)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode/e_store/auto_mode/dehum_off_cab_cool_off_bat_active_cool/dehum_off_cab_cool_off_bat_active_cool_with_incab.cpp:25
-            #17 0x00507ffe in LogicModeCtrlBase::Proc (this=0x705e54 <CreateAutoMode(LogicObjectType)::autoMode>, recvMsg=0xa46728e4)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode/logic_mode_ctrl_base/logic_mode_ctrl_base.cpp:65
-            #18 0x004cf922 in LogicModeMgrBase::ProcModeSwitch (this=0x706610 <LogicModeMgr::GetInstance()::logicModeMgr>, recvMsg=0xa46728e4, nextMode=LOGIC_MODE_TYPE_AUTO, nextState=LOGIC_SUB_STATE_INVALID)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode_mgr/logic_mode_mgr_base/logic_mode_mgr_base.cpp:104
-            #19 0x004cf82c in LogicModeMgrBase::ProcMsg (this=0x706610 <LogicModeMgr::GetInstance()::logicModeMgr>, recvMsg=0xa46728e4)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode_mgr/logic_mode_mgr_base/logic_mode_mgr_base.cpp:86
-            #20 0x00589c80 in TempCtrlScheduleInstance::ProcLogicSchedule (this=0xa657ea18, compMsg=0xa46728e4)
-                at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_instance.cpp:222
-            #21 0x00589f68 in TempCtrlScheduleInstance::OnCompTimer (this=0xa657ea18, compMsg=0xa46728e4) at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_instance.cpp:315
-            #22 0x0058a098 in TempCtrlScheduleInstance::OnCompMsg (this=0xa657ea18, compMsg=0xa46728e4) at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_instance.cpp:360
-            #23 0x005896d4 in TempCtrlScheduleCompMsgProc (msg=0xa46728e4, instancePtr=0xa657ea18) at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_comp.cpp:50
-            #24 0xb6c3623c in RTF_MsgProcessCbk () from target:/lib/libdopra_4.2.1.so
-            #25 0xb6c39dac in rtfScmMessageSchedule () from target:/lib/libdopra_4.2.1.so
-            #26 0xb6c3b678 in rtfScmCompScheKernelEntryFifo () from target:/lib/libdopra_4.2.1.so
-            #27 0xb6c3b440 in rtfScmCompScheDefaultEntry () from target:/lib/libdopra_4.2.1.so
-            #28 0xb6aad0c8 in VosTskAllTaskEntry () from target:/lib/libdopra_4.2.1.so
-            #29 0xb643511c in ?? () from target:/lib/libc.so.6
-            #30 0xb64b367c in ?? () from target:/lib/libc.so.6
-            Backtrace stopped: previous frame identical to this frame (corrupt stack?)
-            ```
+```cpp
+    1145        EMAP_LOG(4171, 5, "[LogicCompModuleDmdCtrl] destructor");
+    (gdb) bt
+    #0  LogicCompModuleDmdCtrl::~LogicCompModuleDmdCtrl (this=0xa4704c48, __in_chrg=<optimized out>)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module_state/logic_comp_module_dmd_ctrl.cpp:1145
+    #1  0x00524fda in LogicCompModuleDmdCtrl::~LogicCompModuleDmdCtrl (this=0xa4704c48, __in_chrg=<optimized out>)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module_state/logic_comp_module_dmd_ctrl.cpp:1146
+    #2  0x0051fe52 in LogicCompModule::ReleaseResource (this=0xa41fc780)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module.cpp:50
+    #3  0x0051fdb4 in LogicCompModule::~LogicCompModule (this=0xa41fc780, __in_chrg=<optimized out>)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_module/logic_comp_module.h:123
+    #4  0x005515f8 in LogicCompSysStateNormRun::CalcLastCompCtrlInfo (this=0xa4704e50, compSysData=..., lastCtrlPerc=@0xa41fc7e4: 0, ratedCapacity=@0xa41fc7e0: 2.5)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:180
+    #5  0x0055143e in LogicCompSysStateNormRun::CalcCompModuleTempPidDmd (this=0xa4704e50, compSysData=..., routeCtrlInfo=..., dmdCalcPid=...)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:162
+    #6  0x00551248 in LogicCompSysStateNormRun::CalcCompModuleCoolDmd (this=0xa4704e50, compSysData=..., routeCtrlInfo=..., dmdCalcPid=...)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:122
+    #7  0x0055199a in LogicCompSysStateNormRun::CalcCompCoolCtrlInfo (this=0xa4704e50, compSysData=..., compModuleCtrl=...)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:273
+    #8  0x00551846 in LogicCompSysStateNormRun::ProcCompDmdCtrl (this=0xa4704e50, compSysData=...)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:242
+    #9  0x005520ea in LogicCompSysStateNormRun::ProcDmdCtrl (this=0xa4704e50, compSysData=...)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:466
+    #10 0x00551ece in LogicCompSysStateNormRun::ProcCtrl (this=0xa4704e50, compSysData=...)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_state/logic_comp_sys_state_norm_run.cpp:404
+    #11 0x00531fc0 in LogicCompSysEquipGroupProcCtrl::ProcCompSysState (this=0xa4701814)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_proc_ctrl.cpp:418
+    #12 0x005320d6 in LogicCompSysEquipGroupProcCtrl::ProcCtrl (this=0xa4701814, ctrlTypeNum=6, ctrlInfo=0xa4708f50)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_proc_ctrl.cpp:451
+    #13 0x00537bdc in LogicCompSysEquipGroupProcCtrlWithCompHeat::ProcCtrl (this=0xa4701814, ctrlTypeNum=6, ctrlInfo=0xa4708f50)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_proc_ctrl_with_comp_heat.cpp:69
+    #14 0x0052cf78 in LogicCompSysEquipGroupImpl::ProcCtrl (this=0xa4701790, ctrlTypeNum=6, ctrlInfo=0xa4708f50)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_equip_group/e_store/logic_comp_sys_equip_group/logic_comp_sys_equip_group_impl.cpp:42
+    #15 0x0050085a in LogicCompSysCtrlBase::Ctrl (this=0x705f28 <CreateSubStateDehumOffCabCoolOffBatActiveCool(LogicObjectType)::stateDehumOff+24>, ctrlMode=0, route1DemandId=2, route2DemandId=65280)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode/e_store/mode_utility/equip_group_ctrl/logic_comp_sys_equip_group_ctrl/logic_comp_sys_equip_group_ctrl.cpp:33
+    #16 0x004d7ebe in DehumOffCabCoolOffBatActiveCoolWithIncab::Proc (this=0x705f10 <CreateSubStateDehumOffCabCoolOffBatActiveCool(LogicObjectType)::stateDehumOff>, recvMsg=0xa46728e4)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode/e_store/auto_mode/dehum_off_cab_cool_off_bat_active_cool/dehum_off_cab_cool_off_bat_active_cool_with_incab.cpp:25
+    #17 0x00507ffe in LogicModeCtrlBase::Proc (this=0x705e54 <CreateAutoMode(LogicObjectType)::autoMode>, recvMsg=0xa46728e4)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode/logic_mode_ctrl_base/logic_mode_ctrl_base.cpp:65
+    #18 0x004cf922 in LogicModeMgrBase::ProcModeSwitch (this=0x706610 <LogicModeMgr::GetInstance()::logicModeMgr>, recvMsg=0xa46728e4, nextMode=LOGIC_MODE_TYPE_AUTO, nextState=LOGIC_SUB_STATE_INVALID)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode_mgr/logic_mode_mgr_base/logic_mode_mgr_base.cpp:104
+    #19 0x004cf82c in LogicModeMgrBase::ProcMsg (this=0x706610 <LogicModeMgr::GetInstance()::logicModeMgr>, recvMsg=0xa46728e4)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/logic_mode_mgr/logic_mode_mgr_base/logic_mode_mgr_base.cpp:86
+    #20 0x00589c80 in TempCtrlScheduleInstance::ProcLogicSchedule (this=0xa657ea18, compMsg=0xa46728e4)
+    at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_instance.cpp:222
+    #21 0x00589f68 in TempCtrlScheduleInstance::OnCompTimer (this=0xa657ea18, compMsg=0xa46728e4) at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_instance.cpp:315
+    #22 0x0058a098 in TempCtrlScheduleInstance::OnCompMsg (this=0xa657ea18, compMsg=0xa46728e4) at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_instance.cpp:360
+    #23 0x005896d4 in TempCtrlScheduleCompMsgProc (msg=0xa46728e4, instancePtr=0xa657ea18) at /usr1/h30045134/code/LCC/Component/CommonServiceComponent/temp_ctrl_schedule/src/temp_ctrl_schedule_comp.cpp:50
+    #24 0xb6c3623c in RTF_MsgProcessCbk () from target:/lib/libdopra_4.2.1.so
+    #25 0xb6c39dac in rtfScmMessageSchedule () from target:/lib/libdopra_4.2.1.so
+    #26 0xb6c3b678 in rtfScmCompScheKernelEntryFifo () from target:/lib/libdopra_4.2.1.so
+    #27 0xb6c3b440 in rtfScmCompScheDefaultEntry () from target:/lib/libdopra_4.2.1.so
+    #28 0xb6aad0c8 in VosTskAllTaskEntry () from target:/lib/libdopra_4.2.1.so
+    #29 0xb643511c in ?? () from target:/lib/libc.so.6
+    #30 0xb64b367c in ?? () from target:/lib/libc.so.6
+    Backtrace stopped: previous frame identical to this frame (corrupt stack?)
+```
+
+## 遗留问题（需要进一步研究证明）：
+
+-   1、为何类向auto初始化赋值时会调用析构函数；
+-   2、为何类向类本身类型初始化赋值时不会调用析构函数；
+-   3、调用析构函数之后再次访问该类的方法为什么不会报错（是因为中间析构的是临时的类变量？）；
+    -   如图：在析构函数中添加打印，释放的内存就是后续赋值给auto的类中的指针数组，且在析构函数执行到 `}` 时打印对象本身，指针数组已经被释放：
+	    
+    -   ![image-20240807162538327](http://image.huawei.com/tiny-lts/v1/images/7c69ce2f507584aaf44e104e298729cf_267x119.png)
+	-   ![image-20240807162548464](http://image.huawei.com/tiny-lts/v1/images/31a2aa46ffc73646724b603dcec77275_676x302.png)
+	-   ![image-20240807162510159](http://image.huawei.com/tiny-lts/v1/images/9678b65b719e71ba75a692a2fa391804_1175x21.png)
+	-   ![image-20240807162644414](http://image.huawei.com/tiny-lts/v1/images/dd95301a23900d85a5eb507722fe8a9e_2066x349.png)
 
 
 ## 定位手段
@@ -231,7 +272,7 @@
 
     - 解压出编译后带有全部符号的软件 `cd ${project_root}/output/luna_tms_2000/rtos_a7/debug; tar -xvzf ./debug.tar.gz; cd debug`；
 
-    - 使用何种版本的gdb取决于编译时工具链使用的是编译器前缀，可以在 `${project_root}/PublicProduct/LCC/cmake/superbuild/CMakeLists.txt` 下找到所使用的工具链前缀（使用的）:
+    - 使用何种版本的gdb取决于编译时工具链使用的是编译器前缀，可以在 `${project_root}/PublicProduct/LCC/cmake/superbuild/CMakeLists.txt` 下找到所使用的工具链前缀:
 
         - ```cmake
             # 工具链列表
@@ -246,7 +287,7 @@
 
 ### [gdb-strip](https://dbox.huawei.com/detaildocs?oid=DC%3Awt.doc.WTDocument%3A6743375_PMD25395ZH)
 
--   精简版的gdb，可以运行在但班上，一般缺少符号的app用处不大
+-   精简版的gdb，可以运行在单板上，一般缺少符号的app用处不大
 -   **gdb-strip 缺少so库** `libreadline.so.8` 、 `libtinfo.so.5` 、 `libexpat.so.1`:
     -   将压缩包 `lib` 中的so库文件拷贝到单板的 `/lib` 目录下
 -   `/home/gdb-strip /app_run/app_arm/<app_name>` 开始调试

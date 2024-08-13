@@ -42,7 +42,7 @@ git mm credential install
 git mm credential --store -u='${USER_NAME}' -p='${USER_PASSWD}' --host "*"
 ```
 
-按照上述流程完成后，查看 `~/.git-mm-credential` 内容应当如下
+按照上述流程完成后，查看 `~/.git-mm-credentials` 内容应当如下
 
 ```bash
 [{"Protocol":"https","Host":"*","Path":"*","Username":"h30045134","Password":"QWElMjEwOTQxNjE3NTM="}]
@@ -51,8 +51,8 @@ git mm credential --store -u='${USER_NAME}' -p='${USER_PASSWD}' --host "*"
 ### 解决每年更换域账号密码后 `git-mm credential` 失效，导致 `git-mm` 同步多仓时弹出 windows 凭证窗口
 
 ```bash
-cat ~/.git-credential # 可以发现，git凭证管理中依然是旧密码
-rm -rf ~/.git-credential
+cat ~/.git-mm-credentials # 可以发现，git凭证管理中依然是旧密码
+rm -rf ~/.git-mm-credentials
 cd /path/to/your/code/root
 rm -rf ./* ./.mm
 git mm init ...
