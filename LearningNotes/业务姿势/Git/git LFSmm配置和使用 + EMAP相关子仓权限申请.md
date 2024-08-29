@@ -53,6 +53,7 @@ git mm credential --store -u='${USER_NAME}' -p='${USER_PASSWD}' --host "*"
 ```bash
 cat ~/.git-mm-credentials # 可以发现，git凭证管理中依然是旧密码
 rm -rf ~/.git-mm-credentials
+# 重新执行上文git-mm凭证初始化的操作
 cd /path/to/your/code/root
 rm -rf ./* ./.mm
 git mm init ...
@@ -67,6 +68,8 @@ git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC
 
 # 本地初始化远程分支 br_LCC_V300R024C00_TR5-1_Release
 git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC/LCC_Manifest.git -b br_LCC_V300R024C00_TR5-1_Release -m LCC/dependency.xml -g lcc,llt
+
+git mm init -u https://codehub-dg-y.huawei.com/Energy_Manifest/PublicProduct/LCC/LCC_Manifest.git -b br_LCC_V300R024C10_TR5-1_Release -m LCC/dependency.xml -g lcc,llt
 
 # 本地新建分支：
 git mm start <分支名> --all
