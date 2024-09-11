@@ -250,6 +250,24 @@ VOS_UINT32 LogicCompSysStateNormRun::CalcLastCompCtrlInfo(LogicCompSysCtrlData &
 	-   ![image-20240807162510159](http://image.huawei.com/tiny-lts/v1/images/9678b65b719e71ba75a692a2fa391804_1175x21.png)
 	-   ![image-20240807162644414](http://image.huawei.com/tiny-lts/v1/images/dd95301a23900d85a5eb507722fe8a9e_2066x349.png)
 
+-   2024-08-20: 其实是很弱智的问题，通过 `auto compModule = compSysData.compModule;` 赋值时，其实是执行了类对象 `LogicCompModule` 的拷贝构造函数，默认拷贝构造其实是直接将类中的内容直接复制一份，所以成员中有指针的时候，此时就有了第二个对象同时持有这些指针，类成员变量 `compModule` 离开作用域时执行析构，就把这些指针指向的内存释放掉了，结果就是原来的 `compSysData.compModule` 中成员指针是空指针了，但是还在正常运行，一跑就是踩空；反而使用 `auto &compModule = compSysData.compModule;` 来临时存储对象时， `&` 推断为引用，而引用离开作用域时不会析构；
+
+-   解决措施: 禁止拷贝
+
+-   ```c++
+    class LogicCompModule {
+    public:
+        LogicCompModule();
+        virtual ~LogicCompModule()
+        {
+            ReleaseResource();
+        }
+    private:
+        // 禁止拷贝构造函数、拷贝赋值运算符
+        LogicCompModule(const LogicCompModule &) = default;
+        LogicCompModule &operator = (const LogicCompModule &) = default;
+    };
+    ```
 
 ## 定位手段
 

@@ -88,6 +88,8 @@ sudo su
 # 重新配置 dash
 dpkg-reconfigure dash
 # 选择 <No>/<否>
+
+# 或直接编辑 /etc/passwd 修改对应的用户默认 shell
 ```
 
 ## 其他配置
@@ -301,3 +303,11 @@ export CORTEX_A7_SYSROOT=/opt/st/SDK/sysroots/cortexa7t2hf-neon-vfpv4-openstlinu
 ### 自定义 WSL 自动拉起脚本
 
 -   `vim ~/.wsl-auto-setup/init.sh`
+
+### 配置本机 jenkins 签名
+
+```bash
+# 在容器/编译所在环境内任意位置执行
+wget http://buildmeasure.inhuawei.com:8090/SignatureClient/script/config_signature.sh
+bash ./config_signature.sh
+```
