@@ -54,3 +54,11 @@
 
 1.   打开 `Registry` ，进入表项 `\HKEY_CURRENT_USER\Control Panel\Desktop\WindowMetrics`
 2.   `IconSpacing` 和 `IconVerticalSpacing` 默认为 `-1125` 图标间距较大时调整为默认值即可解决
+
+### 修复右下角通知/日历无法显示
+
+-   注册表修改键值
+
+`HKCU\Software\Policies\Microsoft\Windows\Explorer\DisableNotificationCenter` 如果是1改为0
+
+`HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications\ToastEnabled` 写1
