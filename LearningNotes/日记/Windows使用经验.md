@@ -11,9 +11,9 @@
 -   终端登录 `git-bash / bash` 时需要添加 `--login -i` 参数
 
 -   右键菜单在目录背景下打开 `git-bash / bash`
-    -   `"E:\Program Files\Git\bin\bash.exe" -c "cd '%V' && exec /bin/bash"`
+    -   `"E:\Program Files\Git\bin\bash.exe" --login -i -c "cd '%V' && exec /bin/bash"`
 -   右键菜单单击目录打开 `git-bash / bash`
-    -   `"E:\Program Files\Git\bin\bash.exe" -c "cd '%1' && exec /bin/bash"`
+    -   `"E:\Program Files\Git\bin\bash.exe" --login -i -c "cd '%1' && exec /bin/bash"`
 
 ### Windows 乱码解决
 
