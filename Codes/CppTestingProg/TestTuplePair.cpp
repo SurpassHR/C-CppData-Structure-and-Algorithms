@@ -5,6 +5,14 @@
 #include <iostream>
 #include <vector>
 
+auto GetPoint()
+{
+    int x{1};
+    int y{2};
+    int z{3};
+    return std::make_tuple(x, y, z);
+}
+
 int main()
 {
     int a = 1, b = 5;
